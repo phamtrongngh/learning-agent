@@ -1,0 +1,76 @@
+{
+  "course": {
+    "schema_version": 1,
+    "id": "terraform-local-practice",
+    "subject": "Terraform",
+    "goal": "Build and adapt validated local infrastructure configurations",
+    "language": "en",
+    "status": "active"
+  },
+  "curriculum": {
+    "milestones": [
+      {"id": "tf-foundations", "title": "Terraform foundations"},
+      {"id": "tf-design", "title": "Reusable design"}
+    ],
+    "competencies": [
+      {"id": "tf-config", "title": "Write and validate configuration", "target_level": 2, "required_evidence_types": ["practical", "explanation"]},
+      {"id": "tf-state", "title": "Reason about Terraform state", "target_level": 2, "required_evidence_types": ["practical", "explanation"]},
+      {"id": "tf-modules", "title": "Design reusable modules", "target_level": 2, "required_evidence_types": ["practical", "explanation"]},
+      {"id": "tf-transfer", "title": "Adapt a design to a new environment", "target_level": 3, "required_evidence_types": ["practical", "transfer"]}
+    ],
+    "lessons": [
+      {
+        "id": "tf-lesson-1",
+        "title": "Validate a local configuration",
+        "milestone_id": "tf-foundations",
+        "prerequisites": [],
+        "required_competencies": ["tf-config"],
+        "local_validator_summary": "fixture: terraform validate simulated locally; configuration is syntactically valid"
+      },
+      {
+        "id": "tf-lesson-2",
+        "title": "Inspect local state behavior",
+        "milestone_id": "tf-foundations",
+        "prerequisites": ["tf-lesson-1"],
+        "required_competencies": ["tf-state"],
+        "local_validator_summary": "fixture: local state-file assertions simulated without a backend"
+      },
+      {
+        "id": "tf-lesson-3",
+        "title": "Extract a reusable local module",
+        "milestone_id": "tf-design",
+        "prerequisites": ["tf-lesson-2"],
+        "required_competencies": ["tf-modules"],
+        "local_validator_summary": "fixture: module input/output contract checked by a local summary"
+      },
+      {
+        "id": "tf-lesson-4",
+        "title": "Transfer a module to a second environment",
+        "milestone_id": "tf-design",
+        "prerequisites": ["tf-lesson-3"],
+        "required_competencies": ["tf-transfer"],
+        "local_validator_summary": "fixture: environment adaptation checked locally; no provider is initialized"
+      }
+    ]
+  },
+  "sources": {
+    "sources": [
+      {
+        "id": "terraform-language-docs",
+        "url": "https://developer.hashicorp.com/terraform/language",
+        "publisher": "HashiCorp",
+        "version": "1.9",
+        "verified_at": "2026-09-02",
+        "freshness": "verified"
+      },
+      {
+        "id": "terraform-state-docs",
+        "url": "https://developer.hashicorp.com/terraform/language/state",
+        "publisher": "HashiCorp",
+        "version": "1.9",
+        "verified_at": "2026-09-02",
+        "freshness": "verified"
+      }
+    ]
+  }
+}

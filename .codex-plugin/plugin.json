@@ -1,0 +1,18 @@
+{
+  "name": "learning-agent",
+  "version": "0.1.0",
+  "description": "Turn Codex into a persistent, evidence-based tutor for terminal-practical technical skills.",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Learning Agent",
+    "shortDescription": "Use Learning Agent in Codex.",
+    "longDescription": "Learning Agent adds a local Codex plugin scaffold.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Help me use Learning Agent."
+  }
+}
