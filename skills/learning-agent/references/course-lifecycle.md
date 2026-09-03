@@ -31,11 +31,11 @@ For every existing course, run `validate` and then `status` before teaching. Use
 
 If state is malformed or inconsistent, stop teaching and follow the repair procedure in `state-engine.md`. Do not edit `.learning/progress.json` manually.
 
-## Adaptation and revision history
+## Adaptation and course-contract changes
 
-Adapt lesson order only when prerequisites remain valid. You may vary depth, examples, optional practice, remediation, pace, challenges, and lab domain. You must not silently remove a required outcome.
+Vary lesson depth, examples, optional practice, remediation, pace, challenges, and lab domain without changing the approved competency graph. V0 does not mutate lesson order, prerequisites, target competencies, or required outcomes after `init`.
 
-Before changing target competencies, explain the substantive change, obtain approval when it changes the agreed course contract, and append a concise revision record to the current session summary. Keep stable IDs so earlier evidence remains traceable. Use the session template for a compact summary, never a full transcript.
+If the learner needs a substantive contract change, explain it and record the proposal in the current session summary. After approval, initialize a new course directory with the revised curriculum; do not silently transfer mastery from the old course. Use the session template for a compact summary, never a full transcript.
 
 ## Unsupported-subject reduced mode
 

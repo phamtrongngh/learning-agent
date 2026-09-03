@@ -87,6 +87,44 @@ class CliTests(unittest.TestCase):
             self.assertTrue((root / "README.md").is_file())
             self.assertTrue((root / "ROADMAP.md").is_file())
 
+    def test_init_rejects_an_existing_course_without_overwriting_it(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.initialize(root)
+            before = (root / ".learning" / "course.json").read_text(encoding="utf-8")
+            payload = valid_initialization()
+            payload["course"]["subject"] = "Pulumi"
+            replacement = root / "replacement.json"
+            replacement.write_text(json.dumps(payload), encoding="utf-8")
+
+            result = self.run_cli("--root", str(root), "init", "--input", str(replacement))
+
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(
+                self.assert_envelope(result, "init", False)["errors"],
+                ["course is already initialized"],
+            )
+            self.assertEqual((root / ".learning" / "course.json").read_text(encoding="utf-8"), before)
+
+    def test_validate_rejects_progress_not_supported_by_the_journal(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.initialize(root)
+            progress_path = root / ".learning" / "progress.json"
+            progress = json.loads(progress_path.read_text(encoding="utf-8"))
+            progress["lessons"]["lesson-1"]["state"] = "passed"
+            progress["lessons"]["lesson-2"]["state"] = "active"
+            progress["active_lesson_id"] = "lesson-2"
+            progress["competencies"]["c1"] = {"level": 2, "evidence_event_ids": ["forged"]}
+            progress_path.write_text(json.dumps(progress), encoding="utf-8")
+
+            result = self.run_cli("--root", str(root), "validate")
+
+            self.assertEqual(result.returncode, 2)
+            errors = self.assert_envelope(result, "validate", False)["errors"][0]
+            self.assertIn("progress references unknown evidence event forged", errors)
+            self.assertIn("progress.lessons[lesson-1].state is not supported by the evidence journal", errors)
+
     def test_sources_upserts_validated_official_source_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -170,6 +208,58 @@ class CliTests(unittest.TestCase):
             advanced = self.run_cli("--root", str(root), "advance")
             self.assertEqual(advanced.returncode, 0, advanced.stderr)
             self.assertEqual(self.assert_envelope(advanced, "advance", True)["data"]["progress"]["active_lesson_id"], "lesson-2")
+
+    def test_record_rejects_evidence_for_a_locked_lesson(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.initialize(root)
+            evidence = root / "locked-evidence.json"
+            event = passing_lesson_one_evidence()[0]
+            event["lesson_id"] = "lesson-2"
+            evidence.write_text(json.dumps(event), encoding="utf-8")
+
+            result = self.run_cli("--root", str(root), "record", "--input", str(evidence))
+
+            self.assertEqual(result.returncode, 2)
+            payload = self.assert_envelope(result, "record", False)
+            self.assertEqual(payload["errors"], ["evidence lesson lesson-2 is not active"])
+            self.assertEqual((root / ".learning" / "evidence.jsonl").read_text(encoding="utf-8"), "")
+
+    def test_record_rejects_dispositions_reserved_for_skip(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.initialize(root)
+            evidence = root / "disposition.json"
+            event = passing_lesson_one_evidence()[0]
+            event.update({"type": "disposition", "competency_ids": [], "rubric_level": 0})
+            evidence.write_text(json.dumps(event), encoding="utf-8")
+
+            result = self.run_cli("--root", str(root), "record", "--input", str(evidence))
+
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(
+                self.assert_envelope(result, "record", False)["errors"],
+                ["disposition evidence must be recorded with skip"],
+            )
+            self.assertEqual((root / ".learning" / "evidence.jsonl").read_text(encoding="utf-8"), "")
+
+    def test_record_rejects_an_unknown_superseded_event(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.initialize(root)
+            evidence = root / "correction.json"
+            event = passing_lesson_one_evidence()[0]
+            event["supersedes_event_id"] = "missing"
+            evidence.write_text(json.dumps(event), encoding="utf-8")
+
+            result = self.run_cli("--root", str(root), "record", "--input", str(evidence))
+
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(
+                self.assert_envelope(result, "record", False)["errors"],
+                ["unknown superseded evidence event missing"],
+            )
+            self.assertEqual((root / ".learning" / "evidence.jsonl").read_text(encoding="utf-8"), "")
 
     def test_skip_appends_a_disposition_and_recover_is_dry_run_by_default(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

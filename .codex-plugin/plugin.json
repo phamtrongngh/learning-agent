@@ -1,6 +1,6 @@
 {
   "name": "learning-agent",
-  "version": "0.1.0",
+  "version": "0.2.0+codex.20260903165443",
   "description": "Turn Codex into a persistent, evidence-based tutor for terminal-practical technical skills.",
   "author": {
     "name": "Local developer"
@@ -8,11 +8,19 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Learning Agent",
-    "shortDescription": "Use Learning Agent in Codex.",
-    "longDescription": "Learning Agent adds a local Codex plugin scaffold.",
+    "shortDescription": "Persistent, evidence-based technical tutoring.",
+    "longDescription": "Build and resume practical technical courses with adaptive lessons, attributed evidence, mastery checks, and local durable progress.",
     "developerName": "Local developer",
     "category": "Productivity",
-    "capabilities": [],
-    "defaultPrompt": "Help me use Learning Agent."
+    "capabilities": [
+      "Interactive tutoring",
+      "Local course state",
+      "Evidence-based assessment"
+    ],
+    "defaultPrompt": [
+      "Teach me a technical skill from zero to hero.",
+      "Continue my current lesson.",
+      "Show my learning progress and next action."
+    ]
   }
 }

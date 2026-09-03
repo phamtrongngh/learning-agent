@@ -37,3 +37,9 @@ class SkillContractTests(unittest.TestCase):
         self.assertRegex(safety_route, re.compile(r"lab", re.IGNORECASE))
         self.assertRegex(safety_route, re.compile(r"environment", re.IGNORECASE))
         self.assertRegex(safety_route, re.compile(r"before teaching or lab execution", re.IGNORECASE))
+
+    def test_session_summaries_have_one_explicit_state_write_exception(self) -> None:
+        state_engine = (ROOT / "skills" / "learning-agent" / "references" / "state-engine.md").read_text(encoding="utf-8")
+        teaching_loop = (ROOT / "skills" / "learning-agent" / "references" / "teaching-loop.md").read_text(encoding="utf-8")
+        self.assertIn("only direct-write exception", state_engine)
+        self.assertIn("YYYYMMDDTHHMMSSZ.md", teaching_loop)

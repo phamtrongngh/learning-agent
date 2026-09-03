@@ -130,6 +130,30 @@ class InitializationValidationTests(unittest.TestCase):
             "evidence contains unknown field override_level",
         ])
 
+    def test_rejects_malformed_evidence_metadata(self) -> None:
+        event = {
+            "event_id": "event-1",
+            "attempt_id": "attempt-1",
+            "timestamp": "not-a-timestamp",
+            "lesson_id": "lesson-1",
+            "context": "lesson",
+            "competency_ids": ["c1"],
+            "type": "practical",
+            "outcome": "accepted",
+            "author": "learner",
+            "hint_level": 0,
+            "rubric_level": 2,
+            "rationale": "A valid practical result.",
+            "artifact_reference": 123,
+            "command_summary": False,
+        }
+
+        self.assertEqual(validate_evidence(event, valid_initialization()["curriculum"]), [
+            "evidence.timestamp must be an ISO 8601 timestamp with a timezone",
+            "evidence.artifact_reference must be a non-empty string",
+            "evidence.command_summary must be a non-empty string",
+        ])
+
 
 if __name__ == "__main__":
     unittest.main()

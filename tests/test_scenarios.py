@@ -128,7 +128,7 @@ class ScenarioTests(unittest.TestCase):
     def test_skipped_prerequisite_keeps_its_competency_at_zero(self) -> None:
         """Granting mastery during a skip would make this prerequisite falsely pass."""
         curriculum = load_terraform_fixture()["curriculum"]
-        skipped = skip_lesson(build_initial_progress(curriculum), "tf-lesson-1", "skipped")
+        skipped = skip_lesson(build_initial_progress(curriculum), "tf-lesson-1", "skipped", curriculum)
         advanced = advance(skipped, curriculum)
 
         self.assertEqual(advanced["lessons"]["tf-lesson-1"]["state"], "skipped")

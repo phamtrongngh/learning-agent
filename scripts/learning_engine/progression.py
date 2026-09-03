@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import copy
 
-from .constants import EVIDENCE_TYPES, LESSON_STATES, SCHEMA_VERSION
+from .constants import EVIDENCE_TYPES, LESSON_STATES, MILESTONE_STATES, SCHEMA_VERSION
 from .evidence import effective_level
 from .graph import topological_lessons
 from .validation import validate_evidence
@@ -239,25 +239,13 @@ def build_initial_progress(
     for lesson_id in eligible_lessons:
         lesson_states[lesson_id]["state"] = "active" if lesson_id == active_lesson_id else "available"
 
-    milestones = {
-        milestone_id: {"state": "locked"}
-        for milestone in _curriculum_items(curriculum, "milestones")
-        if isinstance((milestone_id := milestone.get("id")), str) and milestone_id
-    }
-    for lesson_id, lesson_progress in lesson_states.items():
-        if lesson_progress["state"] == "locked":
-            continue
-        milestone_id = lessons[lesson_id].get("milestone_id")
-        if isinstance(milestone_id, str) and milestone_id in milestones:
-            milestones[milestone_id]["state"] = "active"
-
     return {
         "schema_version": SCHEMA_VERSION,
         "revision": 0,
         "active_lesson_id": active_lesson_id,
         "lessons": lesson_states,
         "competencies": competencies,
-        "milestones": milestones,
+        "milestones": _milestone_states(curriculum, lesson_states),
     }
 
 
@@ -291,6 +279,35 @@ def _is_nonnegative_int(value: object) -> bool:
 
 def _terminal(state: object) -> bool:
     return state in {"passed", "skipped", "waived"}
+
+
+def _milestone_states(
+    curriculum: dict[str, object], lesson_progress: dict[str, object]
+) -> dict[str, dict[str, str]]:
+    lessons = _curriculum_lessons(curriculum)
+    states: dict[str, dict[str, str]] = {}
+    for milestone_id in _curriculum_milestones(curriculum):
+        members = [
+            lesson_progress.get(lesson_id, {}).get("state")
+            for lesson_id, lesson in lessons.items()
+            if lesson.get("milestone_id") == milestone_id
+            and isinstance(lesson_progress.get(lesson_id), dict)
+        ]
+        state = "locked"
+        if members and all(item == "passed" for item in members):
+            state = "passed"
+        elif members and all(_terminal(item) for item in members):
+            state = "incomplete"
+        elif any(item != "locked" for item in members):
+            state = "active"
+        states[milestone_id] = {"state": state}
+    return states
+
+
+def _sync_milestones(progress: dict[str, object], curriculum: dict[str, object]) -> None:
+    lessons = progress.get("lessons")
+    assert isinstance(lessons, dict)
+    progress["milestones"] = _milestone_states(curriculum, lessons)
 
 
 def validate_progress(progress: dict[str, object], curriculum: dict[str, object]) -> list[str]:
@@ -335,6 +352,15 @@ def validate_progress(progress: dict[str, object], curriculum: dict[str, object]
             errors.append(f"progress.lessons[{lesson_id}] prerequisites are not terminal")
 
     active_lesson_id = progress.get("active_lesson_id")
+    active_lessons = [
+        lesson_id
+        for lesson_id, entry in lesson_progress.items()
+        if isinstance(entry, dict) and entry.get("state") in {"active", "remediation"}
+    ]
+    if len(active_lessons) > 1:
+        errors.append("progress must not contain multiple active lessons")
+    elif active_lessons and active_lesson_id != active_lessons[0]:
+        errors.append("progress.active_lesson_id must reference the active lesson")
     if active_lesson_id is not None:
         if not isinstance(active_lesson_id, str) or active_lesson_id not in lessons:
             errors.append(f"progress references unknown active lesson {active_lesson_id}")
@@ -393,6 +419,12 @@ def validate_progress(progress: dict[str, object], curriculum: dict[str, object]
         entry = milestone_progress.get(milestone_id)
         if not isinstance(entry, dict) or not isinstance(entry.get("state"), str):
             errors.append(f"progress.milestones[{milestone_id}] must contain a state")
+        elif entry.get("state") not in MILESTONE_STATES:
+            errors.append(f"progress.milestones[{milestone_id}].state is invalid")
+        elif isinstance(lesson_progress, dict):
+            expected = _milestone_states(curriculum, lesson_progress)[milestone_id]["state"]
+            if entry.get("state") != expected:
+                errors.append(f"progress.milestones[{milestone_id}].state must equal {expected}")
     for milestone_id in sorted(set(milestone_progress) - milestones):
         errors.append(f"progress references unknown milestone {milestone_id}")
     return errors
@@ -519,6 +551,7 @@ def apply_evaluation(
             "missing_evidence": copy.deepcopy(evaluation["missing_evidence"]),
             "below_target": copy.deepcopy(evaluation["below_target"]),
         }
+    _sync_milestones(updated, curriculum)
     return _validate_transition_result(updated, curriculum)
 
 
@@ -535,35 +568,19 @@ def advance(progress: dict[str, object], curriculum: dict[str, object]) -> dict[
     if not _terminal(active_entry.get("state")):
         raise StateTransitionError(f"active lesson {active_lesson_id} is not terminal")
     _set_next_available(updated, curriculum)
+    _sync_milestones(updated, curriculum)
     return _validate_transition_result(updated, curriculum)
 
 
-def skip_lesson(progress: dict[str, object], lesson_id: str, disposition: str) -> dict[str, object]:
+def skip_lesson(
+    progress: dict[str, object], lesson_id: str, disposition: str, curriculum: dict[str, object]
+) -> dict[str, object]:
     """Record a skipped or waived lesson without granting competency mastery."""
     if disposition not in {"skipped", "waived"}:
         raise StateTransitionError("disposition must be skipped or waived")
     if not isinstance(lesson_id, str) or not lesson_id:
         raise StateTransitionError("lesson_id must be a non-empty string")
-    curriculum_proxy = {
-        "lessons": [
-            {"id": identifier, "prerequisites": []}
-            for identifier in (progress.get("lessons", {}) if isinstance(progress, dict) else {})
-            if isinstance(identifier, str)
-        ],
-        "competencies": [
-            {"id": identifier}
-            for identifier in (progress.get("competencies", {}) if isinstance(progress, dict) else {})
-            if isinstance(identifier, str)
-        ],
-        "milestones": [
-            {"id": identifier}
-            for identifier in (progress.get("milestones", {}) if isinstance(progress, dict) else {})
-            if isinstance(identifier, str)
-        ],
-    }
-    # The public signature intentionally has no curriculum.  The state carries every
-    # identifier needed to validate this local disposition transition.
-    updated = _validated_copy(progress, curriculum_proxy)
+    updated = _validated_copy(progress, curriculum)
     lessons = updated["lessons"]
     assert isinstance(lessons, dict)
     entry = lessons.get(lesson_id)
@@ -571,9 +588,12 @@ def skip_lesson(progress: dict[str, object], lesson_id: str, disposition: str) -
         raise StateTransitionError(f"unknown lesson {lesson_id}")
     if _terminal(entry.get("state")):
         raise StateTransitionError(f"lesson {lesson_id} is already terminal")
+    if updated.get("active_lesson_id") != lesson_id or entry.get("state") not in {"active", "remediation"}:
+        raise StateTransitionError(f"lesson {lesson_id} is not active")
     entry["state"] = disposition
     entry["remediation_for"] = None
-    return _validate_transition_result(updated, curriculum_proxy)
+    _sync_milestones(updated, curriculum)
+    return _validate_transition_result(updated, curriculum)
 
 
 def _validate_recovery_evidence(
@@ -677,7 +697,7 @@ def reconstruct_progress(
                 raise ValueError(f"disposition event for lesson {lesson_id} must use rationale skipped or waived")
             if progress.get("active_lesson_id") != lesson_id:
                 raise ValueError(f"cannot reconstruct lesson {lesson_id} before its prerequisites permit it")
-            progress = skip_lesson(progress, lesson_id, disposition)
+            progress = skip_lesson(progress, lesson_id, disposition, curriculum)
             progress = advance(progress, curriculum)
             continue
         evaluable_events = [event for event in events if event.get("type") in EVIDENCE_TYPES]

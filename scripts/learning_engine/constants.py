@@ -5,6 +5,7 @@ EVENT_TYPES = EVIDENCE_TYPES | {"disposition", "environment"}
 EVENT_OUTCOMES = {"accepted", "inconclusive", "rejected"}
 AUTHORS = {"learner", "agent", "collaborative"}
 LESSON_STATES = {"locked", "available", "active", "remediation", "passed", "skipped", "waived"}
+MILESTONE_STATES = {"locked", "active", "passed", "incomplete"}
 COURSE_FILES = {
     "course": "course.json",
     "curriculum": "curriculum.json",

@@ -5,7 +5,7 @@ Learning Agent turns Codex into a persistent, evidence-based tutor for terminal-
 ## Requirements
 
 - Codex with terminal access.
-- Python 3.11 or later; the bundled state engine uses only the standard library.
+- Python 3.10 or later; the bundled state engine uses only the standard library.
 - A writable local directory for each course and its exercises.
 - Git is recommended so a learner can version their notes, projects, and generated course views.
 
@@ -34,7 +34,7 @@ For an existing course it validates durable state and reads status before teachi
 
 ## Course files
 
-Each course is self-contained. Generated learner-facing files are convenient views; `.learning/` is authoritative and is changed only through the state engine.
+Each course is self-contained. Generated learner-facing files are convenient views; `.learning/` is authoritative. Structured state is changed only through the state engine; session summaries are Markdown notes written from the bundled template.
 
 ```text
 terraform-zero-to-hero/
@@ -69,7 +69,7 @@ A competency is mastered only when every rubric-required evidence type is accept
 
 ## Git and safety
 
-Keep the course directory in a Git repository when practical, and commit learner artifacts, notes, and useful generated views at meaningful checkpoints. Do not commit secrets, credentials, tokens, or raw sensitive command output. The append-only evidence journal preserves assessment history; do not hand-edit `.learning/` files or rewrite evidence to make progress appear complete.
+Keep the course directory in a Git repository when practical, and commit learner artifacts, notes, and useful generated views at meaningful checkpoints. Do not commit secrets, credentials, tokens, or raw sensitive command output. The append-only evidence journal preserves assessment history; do not hand-edit structured `.learning/` state or rewrite evidence to make progress appear complete. The sole direct-write exception is a redacted Markdown session summary under `.learning/sessions/`.
 
 Labs prefer local, sandboxed, emulated, or containerized environments. Before any action that could incur cost, alter or delete data or infrastructure, use real credentials, affect shared or production systems, or expose a service publicly, Learning Agent explains the scope, impact, cleanup path, and a safer alternative, then obtains explicit confirmation for that specific action. It does not treat network, environment, or flaky-test failures as learner failure. Version-sensitive guidance is checked against current primary sources and marked stale or unverified when it cannot be confirmed.
 
@@ -78,10 +78,11 @@ Labs prefer local, sandboxed, emulated, or containerized environments. Before an
 Run these commands from this repository:
 
 ```bash
+codex_system_skills="${CODEX_HOME:-$HOME/.codex}/skills/.system"
 python3 -m unittest tests.test_plugin_contract -v
 python3 -m unittest discover -s tests -v
-python3 /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/learning-agent
-python3 /root/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .
+python3 "$codex_system_skills/skill-creator/scripts/quick_validate.py" skills/learning-agent
+python3 "$codex_system_skills/plugin-creator/scripts/validate_plugin.py" .
 git diff --check
 ```
 

@@ -16,6 +16,8 @@ class PluginContractTests(unittest.TestCase):
         self.assertTrue((ROOT / "skills" / "learning-agent").is_dir())
         self.assertTrue((ROOT / "scripts").is_dir())
         self.assertTrue((ROOT / "assets").is_dir())
+        self.assertTrue(manifest["interface"]["capabilities"])
+        self.assertIsInstance(manifest["interface"]["defaultPrompt"], list)
 
     def test_readme_documents_user_and_developer_flows(self) -> None:
         text = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -23,7 +25,7 @@ class PluginContractTests(unittest.TestCase):
             "I want to learn Terraform from zero to hero",
             "Continue my current lesson",
             "python3 -m unittest discover -s tests -v",
-            "Python 3.11",
+            "Python 3.10",
             "explicit confirmation",
         ):
             self.assertIn(phrase, text)

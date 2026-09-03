@@ -160,6 +160,8 @@ class CourseStore:
             return updated
 
     def initialize(self, payload: dict[str, object]) -> None:
+        if self._path("course").exists():
+            raise StateValidationError("course is already initialized")
         errors = validate_initialization(payload)
         curriculum = payload.get("curriculum") if isinstance(payload, dict) else None
         raw_diagnostic_evidence = payload.get("diagnostic_evidence", []) if isinstance(payload, dict) else []

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from .constants import AUTHORS, EVIDENCE_TYPES, EVENT_OUTCOMES, EVENT_TYPES, SCHEMA_VERSION
@@ -47,6 +48,18 @@ def _require_enum(value: object, field: str, allowed: set[str], errors: list[str
         errors.append(f"{field} must be one of: {', '.join(sorted(allowed))}")
         return None
     return value
+
+
+def _require_timestamp(value: object, field: str, errors: list[str]) -> None:
+    if not isinstance(value, str):
+        errors.append(f"{field} must be an ISO 8601 timestamp with a timezone")
+        return
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        parsed = None
+    if parsed is None or parsed.tzinfo is None:
+        errors.append(f"{field} must be an ISO 8601 timestamp with a timezone")
 
 
 def _validate_identified_items(
@@ -201,6 +214,8 @@ def validate_evidence(event: dict[str, object], curriculum: dict[str, object]) -
 
     for field in ("event_id", "attempt_id"):
         _require_string(event.get(field), f"evidence.{field}", errors)
+    if "timestamp" in event:
+        _require_timestamp(event["timestamp"], "evidence.timestamp", errors)
     lesson_id = event.get("lesson_id")
     if lesson_id is not None:
         _require_string(lesson_id, "evidence.lesson_id", errors)
@@ -238,4 +253,7 @@ def validate_evidence(event: dict[str, object], curriculum: dict[str, object]) -
     _require_integer_in_range(event.get("hint_level"), "evidence.hint_level", 0, 5, errors)
     _require_integer_in_range(event.get("rubric_level"), "evidence.rubric_level", 0, 3, errors)
     _require_string(event.get("rationale"), "evidence.rationale", errors)
+    for field in ("artifact_reference", "artifact_ref", "command_summary", "supersedes_event_id"):
+        if field in event:
+            _require_string(event[field], f"evidence.{field}", errors)
     return errors
