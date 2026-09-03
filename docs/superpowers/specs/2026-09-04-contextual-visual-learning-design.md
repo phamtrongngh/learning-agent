@@ -1,7 +1,7 @@
 # Contextual Visual Learning Design
 
-**Date:** 2026-09-04  
-**Status:** Approved for implementation planning  
+**Date:** 2026-09-04
+**Status:** Approved for implementation planning
 **Plugin:** `learning-agent`
 
 ## Purpose
