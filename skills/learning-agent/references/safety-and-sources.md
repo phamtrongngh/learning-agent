@@ -6,6 +6,12 @@ For version-sensitive tools, commands, pricing, limits, APIs, provider behavior,
 
 If current verification is unavailable, continue only with stable foundational material. Mark affected claims unverified or stale; do not present recalled commands, current provider behavior, pricing, or limits as confirmed facts.
 
+## Visual accuracy and safety
+
+A technical visual must agree with the source material, code, commands, or observed system state used in the lesson. Before presenting a version-sensitive visual as current, verify its claims against a current primary or official publisher source and record that source through the approved state workflow. If verification is unavailable, limit the visual to stable foundations and mark affected claims stale or unverified.
+
+Generated imagery must not invent interfaces, command output, provider behavior, resource topology, or precise implementation details. Visual content must not expose secrets or reproduce raw sensitive output. Creating or displaying a visual does not bypass the lab safety gate for costly, destructive, privileged, shared, production, or publicly exposed actions.
+
 ## Lab safety gate
 
 Prefer local, sandboxed, emulated, or containerized labs. Before any operation that could create cost, delete or alter data/resources, use real credentials or privileged access, change shared or production infrastructure, or expose a service publicly, explain the operation, scope, likely impact, cost/cleanup path, and safer local alternative. Obtain explicit learner confirmation for that specific operation before proceeding.
