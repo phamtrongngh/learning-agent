@@ -32,6 +32,14 @@ For a new course, Learning Agent asks about the desired outcome, relevant experi
 
 For an existing course it validates durable state and reads status before teaching, rather than relying on prior chat context. See [the worked usage example](docs/usage.md).
 
+## Contextual visuals
+
+During a lesson, Learning Agent can use a diagram, interactive explanation, or image only when it materially improves one bounded concept or when the learner asks for one. It uses visual capabilities available in the Codex host and continues with a text or ASCII fallback when they are unavailable, so visuals are optional rather than a course requirement.
+
+Each visual leads back to learner work: predict a result, manipulate an input, inspect a relationship, or explain what changed. The visual itself is never mastery evidence, and visual assistance during graded work follows the same hint and authorship rules as text assistance.
+
+Visuals remain in the conversation by default. When one has lasting review value, Learning Agent asks for explicit approval before embedding it in a lesson or saving an export under `visuals/<lesson-id>/`. Saved visuals remain outside `.learning/` and are not required to validate or resume the course.
+
 ## Course files
 
 Each course is self-contained. Generated learner-facing files are convenient views; `.learning/` is authoritative. Structured state is changed only through the state engine; session summaries are Markdown notes written from the bundled template.
@@ -43,6 +51,7 @@ terraform-zero-to-hero/
 ├── lessons/
 ├── projects/
 ├── notes/
+├── visuals/                    # optional, learner-approved visual exports
 └── .learning/
     ├── course.json
     ├── curriculum.json

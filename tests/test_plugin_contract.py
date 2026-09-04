@@ -30,6 +30,26 @@ class PluginContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, text)
 
+    def test_public_contract_documents_optional_contextual_visuals(self) -> None:
+        manifest = json.loads(
+            (ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+        )
+        self.assertIn(
+            "Contextual visual explanations",
+            manifest["interface"]["capabilities"],
+        )
+
+        text = (ROOT / "README.md").read_text(encoding="utf-8")
+        for phrase in (
+            "## Contextual visuals",
+            "only when it materially improves",
+            "text or ASCII fallback",
+            "explicit approval",
+            "visuals/<lesson-id>/",
+            "never mastery evidence",
+        ):
+            self.assertIn(phrase, text)
+
 
 if __name__ == "__main__":
     unittest.main()

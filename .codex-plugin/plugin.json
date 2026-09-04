@@ -15,7 +15,8 @@
     "capabilities": [
       "Interactive tutoring",
       "Local course state",
-      "Evidence-based assessment"
+      "Evidence-based assessment",
+      "Contextual visual explanations"
     ],
     "defaultPrompt": [
       "Teach me a technical skill from zero to hero.",
