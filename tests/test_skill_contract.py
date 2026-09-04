@@ -43,3 +43,64 @@ class SkillContractTests(unittest.TestCase):
         teaching_loop = (ROOT / "skills" / "learning-agent" / "references" / "teaching-loop.md").read_text(encoding="utf-8")
         self.assertIn("only direct-write exception", state_engine)
         self.assertIn("YYYYMMDDTHHMMSSZ.md", teaching_loop)
+
+    def test_visual_requests_route_to_the_teaching_loop(self) -> None:
+        text = SKILL.read_text(encoding="utf-8")
+        visual_route = next(
+            line for line in text.splitlines()
+            if "visual" in line.lower() and "references/teaching-loop.md" in line
+        )
+        self.assertRegex(visual_route, re.compile(r"request|explanation", re.IGNORECASE))
+
+    def test_contextual_visuals_use_the_ordered_media_ladder_and_interaction(self) -> None:
+        text = (
+            ROOT / "skills" / "learning-agent" / "references" / "teaching-loop.md"
+        ).read_text(encoding="utf-8")
+        lowered = text.lower()
+        for phrase in (
+            "learner explicitly asks",
+            "dependencies or topology",
+            "predict, manipulate, inspect, or explain",
+        ):
+            self.assertIn(phrase, lowered)
+        media = (
+            "text, code, a markdown table, or ascii",
+            "mermaid",
+            "interactive web visual",
+            "generated image",
+        )
+        positions = [lowered.index(item) for item in media]
+        self.assertEqual(positions, sorted(positions))
+
+    def test_visuals_preserve_mastery_persistence_and_accessibility_rules(self) -> None:
+        text = (
+            ROOT / "skills" / "learning-agent" / "references" / "teaching-loop.md"
+        ).read_text(encoding="utf-8").lower()
+        for phrase in (
+            "information disclosed",
+            "hint level 3",
+            "hint level 4",
+            "hint level 5",
+            "no proactive visual hints",
+            "explicit learner approval",
+            "`visuals/<lesson-id>/`",
+            "outside `.learning/`",
+            "text equivalent",
+            "keyboard",
+            "reduced-motion",
+            "does not lower mastery",
+            "text or ascii fallback",
+        ):
+            self.assertIn(phrase, text)
+
+    def test_visual_content_obeys_source_and_safety_policy(self) -> None:
+        text = (
+            ROOT / "skills" / "learning-agent" / "references" / "safety-and-sources.md"
+        ).read_text(encoding="utf-8").lower()
+        for phrase in (
+            "version-sensitive visual",
+            "primary or official publisher source",
+            "must not expose secrets",
+            "does not bypass the lab safety gate",
+        ):
+            self.assertIn(phrase, text)

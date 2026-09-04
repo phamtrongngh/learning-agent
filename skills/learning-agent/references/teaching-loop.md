@@ -14,6 +14,27 @@ Run a short loop for the active lesson. Pause after each meaningful learner inte
 
 Use [the lesson template](../../../assets/course/lesson.md.tmpl) to keep the current interaction narrow. A single tutor response must introduce no more than one bounded concept before it asks the learner to do or explain something.
 
+## Contextual visuals
+
+Create or offer a visual when the learner explicitly asks to see, visualize, diagram, simulate, compare, or explore a concept, or when it materially clarifies dependencies or topology, causal or execution flow, state changing over time, spatial relationships or motion, or a data pattern that is hard to inspect from raw values. Do not create one merely because the subject can be illustrated, to decorate a response, or to repeat a short explanation.
+
+Stop at the first sufficient medium:
+
+1. Text, code, a Markdown table, or ASCII.
+2. Mermaid for a static structure fully explained by labeled nodes and edges.
+3. An interactive web visual for adjustable, dynamic, spatial, simulation, or step-through behavior.
+4. A generated image for a physical, spatial, or metaphorical illustration that does not require precise technical labels.
+
+Include interaction only when changing a control teaches something. After showing the visual, ask the learner to predict, manipulate, inspect, or explain; assess only the learner's response or work. A visual is a teaching aid, never mastery evidence.
+
+During a graded attempt, classify visual assistance by the information disclosed, not its format. A neutral rendering of information already in the prompt does not by itself make the attempt assisted. Directing attention to the relevant error area or class is hint level 3; showing a partial scaffold, pseudocode, or solution structure is hint level 4; showing the full solution or directly editing learner work is hint level 5. Existing assistance caps and independent-retry rules still apply. Give no proactive visual hints during milestone or transfer attempts.
+
+Visuals are ephemeral by default. Offer to save one only when it has lasting review value, and persist it only after explicit learner approval. Embed approved Mermaid in the active lesson Markdown or store approved standalone HTML or image files under `visuals/<lesson-id>/` and link them from the lesson. Saved visuals stay outside `.learning/` and are optional for course validation and continuity.
+
+Every visual needs a concise text equivalent. Interactive visuals need semantic, keyboard-accessible controls, visible labels, and non-color cues; essential information and the learner's next action must remain available without hover, motion, or the visual. Motion must honor reduced-motion preferences when the host supports animation.
+
+If a visual capability is missing, fails, times out, renders incorrectly, or raises an accuracy concern, give a text or ASCII fallback and continue the interaction. A visual failure does not lower mastery or create negative learner evidence, and a failed visual is not saved. Mention the unavailable visual only when that helps the learner act.
+
 ## Coach-first assistance
 
 During a graded or mastery-bearing attempt, start in independent-attempt mode. Observe, ask questions, and run only permitted checks; do not edit learner files, write the answer into their solution, or disclose the full solution proactively.
